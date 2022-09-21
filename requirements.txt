@@ -3,3 +3,6 @@
 # Manually managing azure-functions-worker may cause unexpected issues
 
 azure-functions
+requests
+azure-storage-blob==12.13.1
+psycopg2-binary==2.9.3
