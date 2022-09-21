@@ -1,4 +1,4 @@
-from azure.storage.blob import ContainerClient
+
 import azure.functions as func
 import datetime
 from datetime import datetime, timedelta
@@ -9,9 +9,10 @@ import os
 import psycopg2
 import requests
 import shutil
-from shutil import make_archive
 import sys
 
+from azure.storage.blob import ContainerClient
+from shutil import make_archive
 
 # AZURE BLOB
 container = os.getenv("AZ_BLOB_CONTAINER")
