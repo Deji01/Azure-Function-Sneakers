@@ -353,10 +353,11 @@ def load():
 
 def zip_dir():
     current_dir = os.getcwd()
+    destination = os.path.join(current_dir, "nike")
     make_archive(
         f"{current_dir}/nike-{datetime.now().strftime('%d-%m-%Y')}",
         "zip",
-        f"{current_dir}/"
+        f"{destination}"
     )
 
 
@@ -369,10 +370,10 @@ def blob_upload():
         data_dir = os.path.join(current_dir, "archive")
 
         for path in glob.glob(f"{data_dir}/*"):
-            print(path)
+            logging.info(path)
             file = path.split('/')[-1]
             blob_client = container_client.get_blob_client(file)
-            print(blob_client)
+            logging.info(blob_client)
             with open(path, "rb") as data:
                 blob_client.upload_blob(data)
                 logging.info(f"{file} uploaded to blob storage")
