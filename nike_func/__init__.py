@@ -1,7 +1,7 @@
 
 import azure.functions as func
 import datetime
-from datetime import datetime, timedelta
+from datetime import datetime
 import logging
 import glob
 import json
@@ -42,10 +42,10 @@ def create_connection():
 
     try:
         connection = psycopg2.connect(conn_string)
-        print("Connection established")
+        logging.info("Connection established")
 
     except psycopg2.Error as e:
-        print(f"Error connecting to Postgres DB : {e}")
+        logging.info(f"Error connecting to Postgres DB : {e}")
         sys.exit(1)
 
     curr = connection.cursor()
@@ -59,7 +59,7 @@ def create_table(curr, query):
         curr.execute(query)
 
     except BaseException as e:
-        print(e)
+        logging.info(e)
 
 
 def store_db(curr, query, value):
@@ -68,7 +68,7 @@ def store_db(curr, query, value):
         curr.execute(query, value)
 
     except BaseException as e:
-        print(e)
+        logging.info(e)
 
 # GET DATA
 
@@ -103,21 +103,21 @@ def extract():
         for anchor in range(60, 1440, 60):
             url = f"https://api.nike.com/cic/browse/v2?queryid=products&anonymousId=4BDA24CABADC363265C54C3502599558&country=us&endpoint=%2Fproduct_feed%2Frollup_threads%2Fv2%3Ffilter%3Dmarketplace(US)%26filter%3Dlanguage(en)%26filter%3DemployeePrice(true)%26searchTerms%3Dsneakers%26anchor%3D{anchor}%26consumerChannelId%3Dd9a5bc42-4b9c-4976-858a-f159cf99c647%26count%3D{count}&language=en&localizedRangeStr=%7BlowestPrice%7D%20%E2%80%94%20%7BhighestPrice%7D"
 
-            print(f"Start : Anchor {anchor}")
+            logging.info(f"Start : Anchor {anchor}")
             response = requests.get(url, headers=headers)
             result = response.json()
-            print(type(result))
+
 
             filename = f"nike-{datetime.now().strftime('%d-%m-%Y')}-anchor-{anchor}.json"
 
             with open(f"{data_dir}/{filename}", "w", encoding="utf-8") as f:
                 json.dump(result, f)
 
-            print(f"Step {step} Done!!!")
+            logging.info(f"Step {step} Done!!!")
 
             step += 1
     except BaseException as e:
-        print(e)
+        logging.info(e)
 
 
 def transform(file):
@@ -197,7 +197,7 @@ def transform(file):
                 url
             )
     except BaseException as e:
-        print(e)
+        logging.info(e)
 
 # SQL QUERY
 
@@ -340,7 +340,7 @@ def load():
         curr.close()
         connection.close()
     except BaseException as e:
-        print(e)
+        logging.info(e)
 
 
 def zip_dir():
@@ -367,9 +367,9 @@ def blob_upload():
             print(blob_client)
             with open(path, "rb") as data:
                 blob_client.upload_blob(data)
-                print(f"{file} uploaded to blob storage")
+                logging.info(f"{file} uploaded to blob storage")
     except BaseException as e:
-        print(e)
+        logging.info(e)
 
 
 def main(mytimer: func.TimerRequest) -> None:
@@ -386,7 +386,7 @@ def main(mytimer: func.TimerRequest) -> None:
     destination = os.path.join(source, "archive")
 
     for file in glob.glob(source + '*.' + 'zip'):
-        print(file)
+        logging.info(file)
         shutil.move(file, destination)
 
     # upload archived files to azure blob storage
