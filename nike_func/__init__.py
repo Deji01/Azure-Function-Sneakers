@@ -12,7 +12,15 @@ import shutil
 import sys
 
 from azure.storage.blob import ContainerClient
+from dotenv import load_dotenv
+from pathlib import Path
 from shutil import make_archive
+
+
+
+dotenv_path = Path(f'{os.getcwd()}/.env')
+load_dotenv(dotenv_path=dotenv_path)
+load_dotenv()
 
 # AZURE BLOB
 container = os.getenv("AZ_BLOB_CONTAINER")
