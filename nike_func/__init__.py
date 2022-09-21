@@ -8,9 +8,9 @@ import json
 import os
 import psycopg2
 import requests
+import shutil
 from shutil import make_archive
 import sys
-
 
 
 # AZURE BLOB
@@ -23,6 +23,7 @@ db_name = os.getenv("DB_NAME")
 db_password = os.getenv("DB_PASSWORD")
 db_port = os.getenv("DB_PORT")
 db_user = os.getenv("DB_USER")
+
 
 def create_connection():
     "Create Database Connection"
@@ -70,6 +71,7 @@ def store_db(curr, query, value):
 
 # GET DATA
 
+
 def extract():
     try:
         headers = {
@@ -116,12 +118,14 @@ def extract():
     except BaseException as e:
         print(e)
 
+
 def transform(file):
     try:
         with open(file, "r") as f:
             data = json.load(f)
 
-        search_term = data["data"]["products"]["pages"]["searchSummary"].get("originalTerms")
+        search_term = data["data"]["products"]["pages"]["searchSummary"].get(
+            "originalTerms")
 
         for product in data["data"]["products"]["products"]:
             id = product.get("id")
@@ -137,7 +141,8 @@ def transform(file):
             discounted = product["price"].get("discounted")
             employee_price = product["price"].get("employeePrice")
             full_price = product["price"].get("fullPrice")
-            minimum_advertised_price = product["price"].get("minimumAdvertisedPrice")
+            minimum_advertised_price = product["price"].get(
+                "minimumAdvertisedPrice")
             label = product.get("label")
             in_stock = product.get("inStock")
             is_coming_soon = product.get("isComingSoon")
@@ -194,6 +199,7 @@ def transform(file):
         print(e)
 
 # SQL QUERY
+
 
 create_table_query = """
     CREATE TABLE IF NOT EXISTS nike (
@@ -335,22 +341,24 @@ def load():
     except BaseException as e:
         print(e)
 
+
 def zip_dir():
     current_dir = os.getcwd()
-    data_dir = os.path.join(current_dir, "nike")
     make_archive(
         f"{current_dir}/nike-{datetime.now().strftime('%d-%m-%Y')}",
         "zip",
-        f"{data_dir}/"
+        f"{current_dir}/"
     )
+
 
 def blob_upload():
     try:
-        container_client = ContainerClient.from_connection_string(conn_string, container)
+        container_client = ContainerClient.from_connection_string(
+            conn_string, container)
 
         current_dir = os.getcwd()
         data_dir = os.path.join(current_dir, "archive")
-        
+
         for path in glob.glob(f"{data_dir}/*"):
             print(path)
             file = path.split('/')[-1]
@@ -364,6 +372,31 @@ def blob_upload():
 
 
 def main(mytimer: func.TimerRequest) -> None:
+    # extract data to json
+    extract()
+
+    # load and transform data
+    load()
+
+    # archive json files
+    zip_dir()
+
+    source = os.getcwd()
+    destination = os.path.join(source, "archive")
+
+    for file in glob.glob(source + '*.' + 'zip'):
+        print(file)
+        shutil.move(file, destination)
+
+    # upload archived files to azure blob storage
+    blob_upload()
+
+    # delete archive directory with files
+    shutil.rmtree("/archive", ignore_errors=True)
+
+    # delete nike directory with files
+    shutil.rmtree("/nike", ignore_errors=True)
+
     utc_timestamp = datetime.datetime.utcnow().replace(
         tzinfo=datetime.timezone.utc).isoformat()
 
