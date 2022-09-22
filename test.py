@@ -382,6 +382,6 @@ def main():
 
     # delete stockx directory with files
     shutil.rmtree("/stockx", ignore_errors=True)
-    
+       
 if __name__ == "__main__":
     main()
