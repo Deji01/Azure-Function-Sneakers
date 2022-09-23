@@ -149,3 +149,6 @@ __azurite_db*__.json
 
 # Built Visual Studio Code Extensions
 *.vsix
+
+azure-functions-cli/
+packages-microsoft-prod.deb

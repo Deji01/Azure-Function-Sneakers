@@ -16,7 +16,6 @@ from pathlib import Path
 from shutil import make_archive
 
 
-
 dotenv_path = Path(f'{os.getcwd()}/.env')
 load_dotenv(dotenv_path=dotenv_path)
 load_dotenv()
@@ -35,11 +34,6 @@ db_user = os.getenv("DB_USER")
 
 def create_connection():
     "Create Database Connection"
-
-    host = db_host
-    dbname = db_name
-    user = db_user
-    password = db_password
     sslmode = "require"
 
     # Constructing connection string
